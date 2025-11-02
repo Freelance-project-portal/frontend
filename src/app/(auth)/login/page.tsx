@@ -62,7 +62,8 @@ export default function AuthPage() {
     const password = (form.password as HTMLInputElement).value;
 
     try {
-      const response = await signUp({ fullName, email, password, role });
+      // backend expects `name` field, map `fullName` -> `name`
+      const response = await signUp({ name: fullName, email, password, role });
       console.log("✅ Account created:", response);
       toast.dismiss(loadingId);
       toast.success("Account created successfully!");

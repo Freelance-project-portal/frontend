@@ -1,7 +1,7 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export interface RegisterData {
-  fullName: string;
+  name: string; // backend expects `name`
   email: string;
   password: string;
   role: "student" | "faculty";
