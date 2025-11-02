@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardHeader,
@@ -19,15 +20,17 @@ import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/src/components/ui/radio-group";
 import { signIn, signUp } from "@/src/services/auth";
+import { toast } from "sonner";
 
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [role, setRole] = useState<"student" | "faculty">("student");
+  const router = useRouter();
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-
+    const loadingId = toast.loading("Signing in...");
     const form = e.currentTarget;
     const email = (form.email as HTMLInputElement).value;
     const password = (form.password as HTMLInputElement).value;
@@ -35,11 +38,15 @@ export default function AuthPage() {
     try {
       const response = await signIn({ email, password });
       console.log("✅ Signed in:", response);
-      alert("Signed in successfully!");
+      toast.dismiss(loadingId);
+      toast.success("Signed in successfully!");
+      // Redirect to home after successful sign in
+      router.push("/");
       // Optionally store token
       // localStorage.setItem("token", response.token);
     } catch (err: any) {
-      alert(err.message);
+      toast.dismiss();
+      toast.error(err?.message ?? "Sign in failed");
     } finally {
       setIsLoading(false);
     }
@@ -48,7 +55,7 @@ export default function AuthPage() {
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-
+    const loadingId = toast.loading("Creating account...");
     const form = e.currentTarget;
     const fullName = (form.fullName as HTMLInputElement).value;
     const email = (form.email as HTMLInputElement).value;
@@ -57,9 +64,11 @@ export default function AuthPage() {
     try {
       const response = await signUp({ fullName, email, password, role });
       console.log("✅ Account created:", response);
-      alert("Account created successfully!");
+      toast.dismiss(loadingId);
+      toast.success("Account created successfully!");
     } catch (err: any) {
-      alert(err.message);
+      toast.dismiss();
+      toast.error(err?.message ?? "Account creation failed");
     } finally {
       setIsLoading(false);
     }

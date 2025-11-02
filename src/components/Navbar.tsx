@@ -3,10 +3,23 @@
 import Link from "next/link";
 import { Button } from "@/src/components/ui/button";
 import { Briefcase, Menu } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { logoutUser } from "@/src/services/auth";
+import { toast } from "sonner";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsLoggedIn(Boolean(localStorage.getItem("token")));
+    check();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "token") check();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b border-border">
@@ -45,11 +58,30 @@ export default function Navbar() {
 
           {/* Desktop Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/login">
-              <Button variant="ghost" className="cursor-pointer">Sign In</Button>
-            </Link>
+            {isLoggedIn ? (
+              <Button
+                variant="ghost"
+                className="cursor-pointer"
+                onClick={() => {
+                  logoutUser();
+                  setIsLoggedIn(false);
+                  toast.success("Logged out successfully!!")
+                }}
+              >
+                Logout
+              </Button>
+            ) : (
+              <Link href="/login">
+                <Button variant="ghost" className="cursor-pointer">
+                  Sign In
+                </Button>
+              </Link>
+            )}
             <Link href="/dashboard">
-              <Button variant="hero" className="bg-purple-600 hover:bg-purple-700 text-white shadow-md cursor-pointer">
+              <Button
+                variant="hero"
+                className="bg-purple-600 hover:bg-purple-700 text-white shadow-md cursor-pointer"
+              >
                 Go to dashboard
               </Button>
             </Link>
@@ -86,11 +118,24 @@ export default function Navbar() {
               How It Works
             </Link>
             <div className="flex flex-col gap-2 pt-2">
-              <Link href="/(auth)/login">
-                <Button variant="ghost" className="w-full">
-                  Sign In
+              {isLoggedIn ? (
+                <Button
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => {
+                    logoutUser();
+                    setIsLoggedIn(false);
+                  }}
+                >
+                  Logout
                 </Button>
-              </Link>
+              ) : (
+                <Link href="/login">
+                  <Button variant="ghost" className="w-full">
+                    Sign In
+                  </Button>
+                </Link>
+              )}
               <Link href="/dashboard/">
                 <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white shadow-md">
                   Go to dashboard
