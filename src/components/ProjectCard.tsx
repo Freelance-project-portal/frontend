@@ -1,4 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/src/components/ui/card";
 import { Badge } from "@/src/components/ui/badge";
 import { Clock, DollarSign, MapPin } from "lucide-react";
 import Link from "next/link";
@@ -15,14 +21,14 @@ interface ProjectCardProps {
   href?: string; // optional href — if provided the card will be wrapped with a Link
 }
 
-const ProjectCard = ({ 
-  id, 
-  title, 
-  description, 
-  budget, 
-  location, 
-  timePosted, 
-  skills, 
+const ProjectCard = ({
+  id,
+  title,
+  description,
+  budget,
+  location,
+  timePosted,
+  skills,
   category,
   href,
 }: ProjectCardProps) => {
@@ -30,7 +36,9 @@ const ProjectCard = ({
     <Card className="h-full hover:shadow-lg transition-all duration-300 cursor-pointer group border-border bg-card hover:border-primary/50">
       <CardHeader>
         <div className="flex items-start justify-between mb-2">
-          <Badge variant="secondary" className="mb-2">{category}</Badge>
+          <Badge variant="secondary" className="mb-2">
+            {category}
+          </Badge>
           <span className="text-xs text-muted-foreground flex items-center gap-1">
             <Clock className="h-3 w-3" />
             {timePosted}

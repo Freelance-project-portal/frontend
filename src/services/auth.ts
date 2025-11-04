@@ -1,16 +1,6 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-export interface RegisterData {
-  name: string; // backend expects `name`
-  email: string;
-  password: string;
-  role: "student" | "faculty";
-}
-
-export interface LoginData {
-  email: string;
-  password: string;
-}
+import { RegisterData, LoginData } from "../types/auth";
 
 export async function signUp(data: RegisterData) {
   try {
