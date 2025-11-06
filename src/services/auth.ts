@@ -1,6 +1,6 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-import { RegisterData, LoginData } from "../types/auth";
+import { RegisterData, LoginData } from "../types";
 
 export async function signUp(data: RegisterData) {
   try {
