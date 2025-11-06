@@ -11,11 +11,10 @@ import { MoreVertical, Edit, Trash2, Users, ListTodo, Send } from 'lucide-react'
 import Link from 'next/link';
 import ProjectStatusBadge from '@/src/components/shared/ProjectStatusBadge';
 import SkillsBadge from '@/src/components/shared/SkillsBadge';
-
-type ProjectLike = any;
+import type { Project } from '@/src/types';
 
 interface FacultyProjectCardProps {
-  project: ProjectLike;
+  project: Project;
   onEdit?: () => void;
   onDelete?: () => void;
   applicationCount?: number;
@@ -28,9 +27,9 @@ const FacultyProjectCard = ({
   applicationCount = 0,
 }: FacultyProjectCardProps) => {
   const hasNewApplications = applicationCount > 0;
-  const projectId = project?.id ?? project?._id;
-  const createdAt = project?.created_at ?? project?.createdAt;
-  const skills: string[] = project?.skills ?? project?.skillsRequired ?? [];
+  const projectId = project.id;
+  const createdAt = project.created_at;
+  const skills: string[] = project.skills ?? [];
 
   return (
     <Card className="p-6 hover:shadow-lg transition-shadow">

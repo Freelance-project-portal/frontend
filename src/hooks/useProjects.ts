@@ -1,3 +1,5 @@
+import type { Project } from "@/src/types";
+
 export type StudentProject = {
   id: string;
   title?: string;
@@ -22,17 +24,9 @@ export function useRecommendedProjects(_userId: string) {
 }
 
 
-export type FacultyProject = {
-  id: string;
-  title?: string;
-  description?: string;
-  status: "active" | "completed" | "archived";
-  applicantsCount?: number;
-};
-
 export function useFacultyProjects(_userId: string) {
-  // Placeholder implementation for faculty projects
-  return { data: [] as FacultyProject[], isLoading: false };
+  // Placeholder implementation returning typed Project[]
+  return { data: [] as Project[], isLoading: false };
 }
 
 // Placeholder create-project hook to integrate with CreateProjectModal

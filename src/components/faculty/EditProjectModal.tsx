@@ -22,6 +22,7 @@ import { Textarea } from '@/src/components/ui/textarea';
 import { Button } from '@/src/components/ui/button';
 import { useUpdateProject } from '@/src/hooks/useProjects';
 import SkillsBadge from '@/src/components/shared/SkillsBadge';
+import type { Project } from '@/src/types';
 
 const projectSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
@@ -33,17 +34,15 @@ const projectSchema = z.object({
 
 type ProjectFormData = z.infer<typeof projectSchema>;
 
-type ProjectLike = any;
-
 interface EditProjectModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  project: ProjectLike;
+  project: Project;
 }
 
 const EditProjectModal = ({ open, onOpenChange, project }: EditProjectModalProps) => {
   const updateProject = useUpdateProject();
-  const [skills, setSkills] = useState<string[]>(project.skills || project.skillsRequired || []);
+  const [skills, setSkills] = useState<string[]>(project.skills || []);
   const [skillInput, setSkillInput] = useState('');
 
   const form = useForm<ProjectFormData>({
@@ -82,7 +81,7 @@ const EditProjectModal = ({ open, onOpenChange, project }: EditProjectModalProps
 
   const onSubmit = async (data: ProjectFormData) => {
     await updateProject.mutateAsync({
-      id: project.id ?? project._id,
+      id: project.id,
       data: {
         ...data,
         skills,

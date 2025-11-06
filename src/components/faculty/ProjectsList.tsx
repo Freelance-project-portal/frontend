@@ -8,7 +8,7 @@ import { ProjectGridSkeleton } from '@/src/components/shared/LoadingState';
 import EmptyState from '@/src/components/shared/EmptyState';
 import ConfirmDialog from '@/src/components/shared/ConfirmDialog';
 import { FolderOpen } from 'lucide-react';
-import type { Project } from '@/src/types/project';
+import type { Project } from '@/src/types';
 
 const ProjectsList = () => {
   const { user } = useAuth();
