@@ -13,7 +13,12 @@ interface EmptyStateProps {
   };
 }
 
-const EmptyState = ({ icon: Icon, title, description, action }: EmptyStateProps) => {
+const EmptyState = ({
+  icon: Icon,
+  title,
+  description,
+  action,
+}: EmptyStateProps) => {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
       <div className="rounded-full bg-muted p-6 mb-4">
@@ -27,5 +32,3 @@ const EmptyState = ({ icon: Icon, title, description, action }: EmptyStateProps)
 };
 
 export default EmptyState;
-
-

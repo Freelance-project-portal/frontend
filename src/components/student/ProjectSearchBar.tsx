@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, ChangeEvent } from "react";
 
 import SearchInput from "../shared/SearchInput";
 import { Button } from "@/src/components/ui/button";
@@ -54,7 +54,7 @@ const ProjectSearchBar = ({ onSearch, onFilterChange }: ProjectSearchBarProps) =
                 id="skills"
                 placeholder="e.g., React, Python"
                 value={filters.skills}
-                onChange={(e) => setFilters({ ...filters, skills: e.target.value })}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setFilters({ ...filters, skills: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -63,7 +63,7 @@ const ProjectSearchBar = ({ onSearch, onFilterChange }: ProjectSearchBarProps) =
                 id="faculty"
                 placeholder="Search by faculty"
                 value={filters.faculty}
-                onChange={(e) => setFilters({ ...filters, faculty: e.target.value })}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setFilters({ ...filters, faculty: e.target.value })}
               />
             </div>
             <div className="flex gap-2">
