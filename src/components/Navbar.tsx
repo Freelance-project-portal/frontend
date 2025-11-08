@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "@/src/components/ui/button";
 import { Briefcase, Menu } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const check = () => setIsLoggedIn(Boolean(localStorage.getItem("token")));
@@ -20,6 +22,28 @@ export default function Navbar() {
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
+
+  // List of routes that require authentication
+  const authRequiredRoutes = [
+    "/student-dashboard",
+    "/faculty-dashboard",
+  ];
+
+  const handleLogout = () => {
+    const currentPath = pathname || window.location.pathname;
+    const isOnAuthRequiredPage = authRequiredRoutes.some(route => 
+      currentPath.startsWith(route)
+    );
+    
+    logoutUser();
+    setIsLoggedIn(false);
+    toast.success("Logged out successfully!!");
+    
+    // If on an auth-required page, redirect to home
+    if (isOnAuthRequiredPage) {
+      window.location.href = "/";
+    }
+  };
 
   const handleDashboardClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -81,11 +105,7 @@ export default function Navbar() {
               <Button
                 variant="ghost"
                 className="cursor-pointer"
-                onClick={() => {
-                  logoutUser();
-                  setIsLoggedIn(false);
-                  toast.success("Logged out successfully!!");
-                }}
+                onClick={handleLogout}
               >
                 Logout
               </Button>
@@ -140,10 +160,7 @@ export default function Navbar() {
                 <Button
                   variant="ghost"
                   className="w-full"
-                  onClick={() => {
-                    logoutUser();
-                    setIsLoggedIn(false);
-                  }}
+                  onClick={handleLogout}
                 >
                   Logout
                 </Button>

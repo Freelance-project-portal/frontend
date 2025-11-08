@@ -12,7 +12,6 @@ import { Button } from "@/src/components/ui/button";
 
 import FileUpload from "@/src/components/shared/FileUpload";
 import { useSubmitApplication } from "@/src/hooks/useApplications";
-import { useAuth } from "@/src/contexts/AuthContext";
 
 const applicationSchema = z.object({
   cover_letter: z.string().min(50, "Cover letter must be at least 50 characters"),
@@ -29,7 +28,6 @@ interface ApplicationModalProps {
 }
 
 const ApplicationModal = ({ open, onOpenChange, projectId, projectTitle }: ApplicationModalProps) => {
-  const { user } = useAuth();
   const submitApplication = useSubmitApplication();
   const [resumeFile, setResumeFile] = useState<File | null>(null);
 

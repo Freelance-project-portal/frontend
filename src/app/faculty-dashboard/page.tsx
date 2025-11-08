@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-import Navbar from "@/src/components/Navbar";
 import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
 import ProjectsList from "@/src/components/faculty/ProjectsList";

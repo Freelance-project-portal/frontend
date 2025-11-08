@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useProjectById } from "@/src/hooks/useProjects";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
@@ -10,12 +11,6 @@ import { ArrowLeft, Clock, Calendar, Users, User, FileQuestion } from "lucide-re
 import ProjectStatusBadge from "@/src/components/shared/ProjectStatusBadge";
 import { LoadingSpinner } from "@/src/components/shared/LoadingState";
 import EmptyState from "@/src/components/shared/EmptyState";
-
-interface ProjectDetailProps {
-  params: {
-    id: string;
-  };
-}
 
 const formatRelativeTime = (dateString: string): string => {
   const date = new Date(dateString);
@@ -29,8 +24,10 @@ const formatRelativeTime = (dateString: string): string => {
   return date.toLocaleDateString();
 };
 
-const ProjectDetail = ({ params }: ProjectDetailProps) => {
-  const { data: project, isLoading, error } = useProjectById(params.id);
+const ProjectDetail = () => {
+  const params = useParams();
+  const projectId = params?.id as string;
+  const { data: project, isLoading, error } = useProjectById(projectId);
 
   if (isLoading) {
     return (

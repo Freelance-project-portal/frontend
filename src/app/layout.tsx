@@ -7,6 +7,7 @@ import { Toaster } from "../components/ui/sonner";
 import { usePathname } from "next/navigation";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { AuthProvider } from "../contexts/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,9 +46,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <QueryClientProvider client={queryClient}>
-          {!hideNavbar && <Navbar />}
-          <main>{children}</main>
-          <Toaster />
+          <AuthProvider>
+            {!hideNavbar && <Navbar />}
+            <main>{children}</main>
+            <Toaster />
+          </AuthProvider>
         </QueryClientProvider>
       </body>
     </html>

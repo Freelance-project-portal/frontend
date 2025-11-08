@@ -25,45 +25,60 @@ export interface GetAllProjectsParams {
 }
 
 /**
+ * Transform MongoDB document to Project format (convert _id to id)
+ */
+function transformProject(project: any): Project {
+  return {
+    ...project,
+    id: project.id || project._id,
+  };
+}
+
+/**
  * Get all projects (with optional status filter)
  */
 export async function getAllProjects(params?: GetAllProjectsParams): Promise<Project[]> {
   const queryParams = params?.status ? `?status=${params.status}` : "";
-  return authFetch<Project[]>(`/projects${queryParams}`);
+  const projects = await authFetch<any[]>(`/projects${queryParams}`);
+  return projects.map(transformProject);
 }
 
 /**
  * Get project by ID
  */
 export async function getProjectById(id: string): Promise<Project> {
-  return authFetch<Project>(`/projects/${id}`);
+  const project = await authFetch<any>(`/projects/${id}`);
+  return transformProject(project);
 }
 
 /**
  * Create a new project (faculty only)
  */
 export async function createProject(data: CreateProjectData): Promise<Project> {
-  return authFetch<Project>("/projects", {
+  const project = await authFetch<any>("/projects", {
     method: "POST",
     body: JSON.stringify(data),
   });
+  return transformProject(project);
 }
 
 /**
  * Update a project (faculty only)
  */
 export async function updateProject(id: string, data: UpdateProjectData): Promise<Project> {
-  return authFetch<Project>(`/projects/${id}`, {
+  const project = await authFetch<any>(`/projects/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
   });
+  return transformProject(project);
 }
 
 /**
  * Get my projects (for both students and faculty)
  */
 export async function getMyProjects(): Promise<Project[]> {
-  return authFetch<Project[]>("/projects/my-projects");
+  const projects = await authFetch<any[]>("/projects/my-projects");
+  return projects.map(transformProject);
 }
 
 /**
