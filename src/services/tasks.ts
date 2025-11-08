@@ -59,3 +59,12 @@ export async function updateTaskAssignment(
     body: JSON.stringify(data),
   });
 }
+
+/**
+ * Delete a task (faculty only)
+ */
+export async function deleteTask(taskId: string): Promise<void> {
+  return authFetch<void>(`/tasks/${taskId}`, {
+    method: "DELETE",
+  });
+}
