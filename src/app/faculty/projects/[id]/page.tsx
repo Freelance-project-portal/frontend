@@ -3,7 +3,6 @@
 import { useParams, useRouter } from "next/navigation";
 import { useProjectById } from "@/src/hooks/useProjects";
 import { useAuthGuard } from "@/src/hooks/useAuthGuard";
-import Navbar from "@/src/components/Navbar";
 import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
 import { Skeleton } from "@/src/components/ui/skeleton";
@@ -37,7 +36,6 @@ const FacultyProjectDetail = () => {
   if (isChecking || isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <div className="container mx-auto px-4 py-8">
           <Skeleton className="h-10 w-32 mb-6" />
           <Skeleton className="h-64 w-full" />
@@ -49,7 +47,6 @@ const FacultyProjectDetail = () => {
   if (!project) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <div className="container mx-auto px-4 py-8">
           <p>Project not found</p>
         </div>

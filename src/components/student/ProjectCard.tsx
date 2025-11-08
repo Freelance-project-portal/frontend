@@ -69,7 +69,9 @@ const ProjectCard = ({ project, onApply, appliedStatus = "none" }: ProjectCardPr
 
         <div className="flex gap-2">
           <Button asChild variant="outline" className="flex-1">
-            <Link href={`/projects/${project.id}`}>View Details</Link>
+            <Link href={appliedStatus === "accepted" ? `/student/projects/${project.id}` : `/projects/${project.id}`}>
+              View Details
+            </Link>
           </Button>
 
           {appliedStatus === "none" && !isFull && onApply && (
