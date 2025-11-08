@@ -9,15 +9,29 @@ import ProjectsList from "@/src/components/faculty/ProjectsList";
 import CreateProjectModal from "@/src/components/faculty/CreateProjectModal";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useFacultyProjects } from "@/src/hooks/useProjects";
+import { useAuthGuard } from "@/src/hooks/useAuthGuard";
+import { LoadingSpinner } from "@/src/components/shared/LoadingState";
 import { Plus, FolderOpen, Send, CheckCircle } from "lucide-react";
 
 const FacultyDashboard = () => {
+  // Protect route - require faculty role
+  const isChecking = useAuthGuard("faculty");
+  
   const { user } = useAuth();
   const { data: projects } = useFacultyProjects(user?.id || "");
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const activeProjects = projects?.filter((p) => p.status === "active").length || 0;
   const completedProjects = projects?.filter((p) => p.status === "completed").length || 0;
+
+  // Show loading while checking authentication
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

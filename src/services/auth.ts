@@ -41,6 +41,7 @@ export async function signIn(data: LoginData) {
 
 export function logoutUser() {
   localStorage.removeItem("token");
+  localStorage.removeItem("userRole");
 }
 
 export function getToken() {

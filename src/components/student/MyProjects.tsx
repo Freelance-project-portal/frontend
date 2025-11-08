@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useMyProjects } from "@/src/hooks/useProjects";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/components/ui/tabs";

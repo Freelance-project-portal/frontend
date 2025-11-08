@@ -77,12 +77,15 @@ export interface ProjectMember {
 }
 
 export interface DashboardStats {
+  // Faculty dashboard stats
   total_projects?: number;
   pending_applications?: number;
   active_students?: number;
   completed_projects?: number;
+  // Student dashboard stats
   applications_sent?: number;
   projects_joined?: number;
+  completed_tasks?: number;
 }
 
 export interface RegisterData {

@@ -15,11 +15,30 @@ export default function Navbar() {
     const check = () => setIsLoggedIn(Boolean(localStorage.getItem("token")));
     check();
     const onStorage = (e: StorageEvent) => {
-      if (e.key === "token") check();
+      if (e.key === "token" || e.key === "userRole") check();
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
+
+  const handleDashboardClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      // Not logged in, redirect to login page
+      window.location.href = "/login";
+      return;
+    }
+
+    // Get user role and redirect to appropriate dashboard
+    const userRole = localStorage.getItem("userRole");
+    if (userRole === "faculty") {
+      window.location.href = "/faculty-dashboard";
+    } else {
+      window.location.href = "/student-dashboard";
+    }
+  };
 
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b border-border">
@@ -65,7 +84,7 @@ export default function Navbar() {
                 onClick={() => {
                   logoutUser();
                   setIsLoggedIn(false);
-                  toast.success("Logged out successfully!!")
+                  toast.success("Logged out successfully!!");
                 }}
               >
                 Logout
@@ -77,14 +96,13 @@ export default function Navbar() {
                 </Button>
               </Link>
             )}
-            <Link href="/dashboard">
-              <Button
-                variant="hero"
-                className="bg-purple-600 hover:bg-purple-700 text-white shadow-md cursor-pointer"
-              >
-                Go to dashboard
-              </Button>
-            </Link>
+            <Button
+              variant="hero"
+              className="bg-purple-600 hover:bg-purple-700 text-white shadow-md cursor-pointer"
+              onClick={handleDashboardClick}
+            >
+              Go to dashboard
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -136,11 +154,12 @@ export default function Navbar() {
                   </Button>
                 </Link>
               )}
-              <Link href="/dashboard/">
-                <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white shadow-md">
-                  Go to dashboard
-                </Button>
-              </Link>
+              <Button
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white shadow-md"
+                onClick={handleDashboardClick}
+              >
+                Go to dashboard
+              </Button>
             </div>
           </div>
         )}

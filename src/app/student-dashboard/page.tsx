@@ -13,10 +13,15 @@ import ApplicationModal from "@/src/components/student/ApplicationModal";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useMyApplications } from "@/src/hooks/useApplications";
 import { useMyProjects } from "@/src/hooks/useProjects";
+import { useAuthGuard } from "@/src/hooks/useAuthGuard";
+import { LoadingSpinner } from "@/src/components/shared/LoadingState";
 
 import { FolderOpen, Send, CheckCircle } from "lucide-react";
 
 const StudentDashboard = () => {
+  // Protect route - require student role
+  const isChecking = useAuthGuard("student");
+  
   const { user } = useAuth();
 
   const { data: applications } = useMyApplications(user?.id || "");
@@ -28,6 +33,15 @@ const StudentDashboard = () => {
     applications?.filter((app: { status: string }) => app.status === "pending").length || 0;
   const activeProjects =
     myProjects?.filter((p: { status: string }) => p.status === "active").length || 0;
+
+  // Show loading while checking authentication
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

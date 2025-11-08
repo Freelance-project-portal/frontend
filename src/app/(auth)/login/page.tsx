@@ -40,10 +40,18 @@ export default function AuthPage() {
       console.log("✅ Signed in:", response);
       toast.dismiss(loadingId);
       toast.success("Signed in successfully!");
-      // Redirect to home after successful sign in
-      router.push("/");
-      // Optionally store token
-      // localStorage.setItem("token", response.token);
+      
+      // Store user role in localStorage
+      if (response.role) {
+        localStorage.setItem("userRole", response.role);
+      }
+      
+      // Redirect to appropriate dashboard based on role
+      if (response.role === "faculty") {
+        router.push("/faculty-dashboard");
+      } else {
+        router.push("/student-dashboard");
+      }
     } catch (err: any) {
       toast.dismiss();
       toast.error(err?.message ?? "Sign in failed");
@@ -67,6 +75,18 @@ export default function AuthPage() {
       console.log("✅ Account created:", response);
       toast.dismiss(loadingId);
       toast.success("Account created successfully!");
+      
+      // Store user role in localStorage
+      if (response.role) {
+        localStorage.setItem("userRole", response.role);
+      }
+      
+      // Redirect to appropriate dashboard based on role
+      if (response.role === "faculty") {
+        router.push("/faculty-dashboard");
+      } else {
+        router.push("/student-dashboard");
+      }
     } catch (err: any) {
       toast.dismiss();
       toast.error(err?.message ?? "Account creation failed");

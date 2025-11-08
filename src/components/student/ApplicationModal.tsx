@@ -50,10 +50,8 @@ const ApplicationModal = ({ open, onOpenChange, projectId, projectTitle }: Appli
 
     await submitApplication.mutateAsync({
       project_id: projectId,
-      student_id: user?.id,
       cover_letter: data.cover_letter,
       resume_url: resumeUrl,
-      status: "pending",
     });
 
     form.reset();
@@ -110,5 +108,3 @@ const ApplicationModal = ({ open, onOpenChange, projectId, projectTitle }: Appli
 };
 
 export default ApplicationModal;
-
-

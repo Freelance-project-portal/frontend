@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useProjectById } from "@/src/hooks/useProjects";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card";
 import { Separator } from "@/src/components/ui/separator";
-import { ArrowLeft, Clock, DollarSign, MapPin, User, Calendar } from "lucide-react";
+import { ArrowLeft, Clock, Calendar, Users, User, FileQuestion } from "lucide-react";
+import ProjectStatusBadge from "@/src/components/shared/ProjectStatusBadge";
+import { LoadingSpinner } from "@/src/components/shared/LoadingState";
+import EmptyState from "@/src/components/shared/EmptyState";
 
 interface ProjectDetailProps {
   params: {
@@ -13,49 +17,59 @@ interface ProjectDetailProps {
   };
 }
 
-// Mock project data - in a real app, this would come from your backend
-const project = {
-  id: "1",
-  title: "Modern E-commerce Website Development",
-  description: "Looking for an experienced developer to build a full-stack e-commerce platform with payment integration and inventory management. The platform should support multiple vendors, have a robust admin panel, and provide excellent user experience across all devices.",
-  fullDescription: `We are seeking a talented full-stack developer to create a comprehensive e-commerce platform from scratch. This project requires expertise in modern web technologies and e-commerce best practices.
+const formatRelativeTime = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-**Key Requirements:**
-- User authentication and authorization
-- Product catalog with search and filtering
-- Shopping cart and checkout process
-- Payment gateway integration (Stripe)
-- Order management system
-- Admin dashboard for managing products, orders, and users
-- Responsive design for mobile and desktop
-- SEO optimization
-
-**Deliverables:**
-- Fully functional e-commerce website
-- Admin panel
-- Documentation
-- Source code with comments
-- Post-launch support for 30 days
-
-**Timeline:** 8-10 weeks
-
-We value clear communication and regular updates. Please share your portfolio and relevant experience when applying.`,
-  budget: "$5,000 - $10,000",
-  location: "Remote",
-  timePosted: "2 hours ago",
-  skills: ["React", "Node.js", "MongoDB", "Stripe", "TypeScript", "Express"],
-  category: "Web Development",
-  duration: "2-3 months",
-  experienceLevel: "Expert",
-  client: {
-    name: "TechCorp Inc.",
-    rating: 4.8,
-    projectsPosted: 12,
-    hireRate: 85
-  }
+  if (diffInSeconds < 60) return "just now";
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+  return date.toLocaleDateString();
 };
 
 const ProjectDetail = ({ params }: ProjectDetailProps) => {
+  const { data: project, isLoading, error } = useProjectById(params.id);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <Link href="/projects">
+            <Button variant="ghost" className="mb-6">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Projects
+            </Button>
+          </Link>
+          <LoadingSpinner />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !project) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <Link href="/projects">
+            <Button variant="ghost" className="mb-6">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Projects
+            </Button>
+          </Link>
+          <EmptyState
+            icon={FileQuestion}
+            title="Project Not Found"
+            description="The project you're looking for doesn't exist or has been removed."
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const spotsRemaining = (project.max_students ?? 0) - (project.current_students ?? 0);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -72,10 +86,10 @@ const ProjectDetail = ({ params }: ProjectDetailProps) => {
             <Card className="border-border">
               <CardHeader>
                 <div className="flex items-start justify-between mb-4">
-                  <Badge variant="secondary">{project.category}</Badge>
+                  <ProjectStatusBadge status={project.status} />
                   <span className="text-sm text-muted-foreground flex items-center gap-1">
                     <Clock className="h-4 w-4" />
-                    {project.timePosted}
+                    {formatRelativeTime(project.created_at)}
                   </span>
                 </div>
                 <CardTitle className="text-3xl mb-2">{project.title}</CardTitle>
@@ -85,19 +99,23 @@ const ProjectDetail = ({ params }: ProjectDetailProps) => {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2 mb-6">
-                  {project.skills.map((skill, index) => (
-                    <Badge key={index} variant="outline">
-                      {skill}
-                    </Badge>
-                  ))}
+                  {project.skills && project.skills.length > 0 ? (
+                    project.skills.map((skill, index) => (
+                      <Badge key={index} variant="outline">
+                        {skill}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className="text-sm text-muted-foreground">No skills specified</span>
+                  )}
                 </div>
                 
                 <Separator className="my-6" />
                 
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Project Details</h3>
+                  <h3 className="text-lg font-semibold mb-4">Project Requirements</h3>
                   <div className="prose prose-sm max-w-none text-foreground whitespace-pre-line">
-                    {project.fullDescription}
+                    {project.requirements || "No specific requirements provided."}
                   </div>
                 </div>
               </CardContent>
@@ -113,30 +131,39 @@ const ProjectDetail = ({ params }: ProjectDetailProps) => {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" />
-                    Budget
+                    <Users className="h-4 w-4" />
+                    Students
                   </span>
-                  <span className="font-semibold text-primary">{project.budget}</span>
+                  <span className="font-semibold text-primary">
+                    {project.current_students ?? 0} / {project.max_students}
+                  </span>
                 </div>
                 
                 <Separator />
                 
+                {project.deadline && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        Deadline
+                      </span>
+                      <span className="font-medium">
+                        {new Date(project.deadline).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <Separator />
+                  </>
+                )}
+                
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    Location
+                    <Clock className="h-4 w-4" />
+                    Posted
                   </span>
-                  <span className="font-medium">{project.location}</span>
-                </div>
-                
-                <Separator />
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    Duration
+                  <span className="font-medium">
+                    {new Date(project.created_at).toLocaleDateString()}
                   </span>
-                  <span className="font-medium">{project.duration}</span>
                 </div>
                 
                 <Separator />
@@ -144,14 +171,16 @@ const ProjectDetail = ({ params }: ProjectDetailProps) => {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground flex items-center gap-2">
                     <User className="h-4 w-4" />
-                    Experience Level
+                    Faculty
                   </span>
-                  <span className="font-medium">{project.experienceLevel}</span>
+                  <span className="font-medium">
+                    {project.faculty_name || "Unknown"}
+                  </span>
                 </div>
                 
                 <Separator className="my-4" />
                 
-                <Button className="w-full" size="lg" variant="hero">
+                <Button className="w-full" size="lg" variant="default">
                   Apply for Project
                 </Button>
                 <Button className="w-full" variant="outline">
@@ -160,31 +189,31 @@ const ProjectDetail = ({ params }: ProjectDetailProps) => {
               </CardContent>
             </Card>
 
-            {/* Client Info */}
+            {/* Project Stats */}
             <Card className="border-border">
               <CardHeader>
-                <CardTitle>About the Client</CardTitle>
+                <CardTitle>Project Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <p className="font-semibold text-foreground">{project.client.name}</p>
-                  <p className="text-sm text-muted-foreground">Member since 2022</p>
+                  <p className="text-sm text-muted-foreground mb-1">Status</p>
+                  <ProjectStatusBadge status={project.status} />
                 </div>
                 
                 <Separator />
                 
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Rating</span>
-                    <span className="font-medium">{project.client.rating}/5.0</span>
+                    <span className="text-muted-foreground">Spots Available</span>
+                    <span className="font-medium">{spotsRemaining}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Projects Posted</span>
-                    <span className="font-medium">{project.client.projectsPosted}</span>
+                    <span className="text-muted-foreground">Max Students</span>
+                    <span className="font-medium">{project.max_students}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Hire Rate</span>
-                    <span className="font-medium">{project.client.hireRate}%</span>
+                    <span className="text-muted-foreground">Current Students</span>
+                    <span className="font-medium">{project.current_students ?? 0}</span>
                   </div>
                 </div>
               </CardContent>
