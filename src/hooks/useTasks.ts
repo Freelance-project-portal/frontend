@@ -4,10 +4,12 @@ import {
   createTask,
   updateTaskStatus,
   updateTaskAssignment,
+  updateTask,
   deleteTask,
   type CreateTaskData,
   type UpdateTaskStatusData,
   type UpdateTaskAssignmentData,
+  type UpdateTaskData,
 } from '@/src/services/tasks';
 import { toast } from 'sonner';
 
@@ -79,6 +81,26 @@ export function useUpdateTaskAssignment() {
 }
 
 /**
+ * Update task (general update for all fields)
+ */
+export function useUpdateTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateTaskData }) =>
+      updateTask(id, data),
+    onSuccess: (task) => {
+      queryClient.invalidateQueries({ queryKey: ['project-tasks', task.project_id] });
+      queryClient.invalidateQueries({ queryKey: ['project-tasks'] });
+      toast.success('Task updated successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to update task');
+    },
+  });
+}
+
+/**
  * Delete a task (faculty only)
  */
 export function useDeleteTask() {
@@ -86,7 +108,8 @@ export function useDeleteTask() {
 
   return useMutation({
     mutationFn: (taskId: string) => deleteTask(taskId),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ['project-tasks', response.project_id] });
       queryClient.invalidateQueries({ queryKey: ['project-tasks'] });
       toast.success('Task deleted successfully');
     },

@@ -13,20 +13,24 @@ import {
   DialogDescription,
 } from "@/src/components/ui/dialog";
 import CreateTaskForm from "./CreateTaskForm";
+import { EditTaskModal } from "./EditTaskModal";
 import ConfirmDialog from "@/src/components/shared/ConfirmDialog";
 import { ProjectCardSkeleton } from "@/src/components/shared/LoadingState";
 import EmptyState from "@/src/components/shared/EmptyState";
-import { Plus, Calendar, Trash2, ListTodo } from "lucide-react";
-import type { TaskStatus } from "@/src/types";
+import { Plus, Calendar, Trash2, ListTodo, Edit } from "lucide-react";
+import type { TaskStatus, Task } from "@/src/types";
 
 interface TasksManagerProps {
   projectId: string;
+  projectMembers?: Array<{ id: string; student_name: string }>;
 }
 
-const TasksManager = ({ projectId }: TasksManagerProps) => {
+const TasksManager = ({ projectId, projectMembers = [] }: TasksManagerProps) => {
   const { data: tasks, isLoading } = useProjectTasks(projectId);
   const deleteTask = useDeleteTask();
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
   const handleDelete = async () => {
@@ -34,6 +38,11 @@ const TasksManager = ({ projectId }: TasksManagerProps) => {
       await deleteTask.mutateAsync(deletingTaskId);
       setDeletingTaskId(null);
     }
+  };
+
+  const handleEditClick = (task: Task) => {
+    setTaskToEdit(task);
+    setShowEditDialog(true);
   };
 
   const getStatusBadge = (status: TaskStatus) => {
@@ -100,13 +109,22 @@ const TasksManager = ({ projectId }: TasksManagerProps) => {
                       </p>
                     )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setDeletingTaskId(task.id)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEditClick(task)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeletingTaskId(task.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
               </Card>
             );
@@ -128,6 +146,13 @@ const TasksManager = ({ projectId }: TasksManagerProps) => {
           />
         </DialogContent>
       </Dialog>
+
+      <EditTaskModal
+        task={taskToEdit}
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        projectMembers={projectMembers}
+      />
 
       <ConfirmDialog
         open={!!deletingTaskId}

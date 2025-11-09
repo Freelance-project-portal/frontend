@@ -131,7 +131,23 @@ const FacultyProjectDetail = () => {
 
           <TabsContent value="tasks">
             <Card className="p-6">
-              <TasksManager projectId={project.id} />
+              <TasksManager
+                projectId={project.id}
+                projectMembers={members?.map((member) => {
+                  // Safely extract student_id as string
+                  let studentId = '';
+                  if (typeof member.student_id === 'string') {
+                    studentId = member.student_id;
+                  } else if (member.student_id && typeof member.student_id === 'object') {
+                    const studentIdObj = member.student_id as any;
+                    studentId = studentIdObj._id?.toString() || studentIdObj.toString() || '';
+                  }
+                  return {
+                    id: studentId,
+                    student_name: member.student_name,
+                  };
+                })}
+              />
             </Card>
           </TabsContent>
 
