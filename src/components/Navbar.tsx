@@ -3,15 +3,24 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/src/components/ui/button";
-import { Briefcase, Menu } from "lucide-react";
+import { Briefcase, Menu, LogOut, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { logoutUser } from "@/src/services/auth";
 import { toast } from "sonner";
+import { useAuth } from "@/src/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/src/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/src/components/ui/avatar";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const pathname = usePathname();
+  const { user, profile } = useAuth();
 
   useEffect(() => {
     const check = () => setIsLoggedIn(Boolean(localStorage.getItem("token")));
@@ -22,6 +31,11 @@ export default function Navbar() {
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
+
+  // Update isLoggedIn when user changes
+  useEffect(() => {
+    setIsLoggedIn(Boolean(user));
+  }, [user]);
 
   // List of routes that require authentication
   const authRequiredRoutes = [
@@ -102,27 +116,54 @@ export default function Navbar() {
           {/* Desktop Buttons */}
           <div className="hidden md:flex items-center gap-3">
             {isLoggedIn ? (
-              <Button
-                variant="ghost"
-                className="cursor-pointer"
-                onClick={handleLogout}
-              >
-                Logout
-              </Button>
-            ) : (
-              <Link href="/login">
-                <Button variant="ghost" className="cursor-pointer">
-                  Sign In
+              <>
+                <Button
+                  variant="ghost"
+                  className="cursor-pointer"
+                  onClick={handleDashboardClick}
+                >
+                  Dashboard
                 </Button>
-              </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>
+                          {profile?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile" className="cursor-pointer">
+                        <User className="h-4 w-4 mr-2" />
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost" className="cursor-pointer">
+                    Sign In
+                  </Button>
+                </Link>
+                <Button
+                  variant="hero"
+                  className="bg-purple-600 hover:bg-purple-700 text-white shadow-md cursor-pointer"
+                  onClick={handleDashboardClick}
+                >
+                  Go to dashboard
+                </Button>
+              </>
             )}
-            <Button
-              variant="hero"
-              className="bg-purple-600 hover:bg-purple-700 text-white shadow-md cursor-pointer"
-              onClick={handleDashboardClick}
-            >
-              Go to dashboard
-            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -157,26 +198,44 @@ export default function Navbar() {
             </Link>
             <div className="flex flex-col gap-2 pt-2">
               {isLoggedIn ? (
-                <Button
-                  variant="ghost"
-                  className="w-full"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </Button>
-              ) : (
-                <Link href="/login">
-                  <Button variant="ghost" className="w-full">
-                    Sign In
+                <>
+                  <Button
+                    variant="ghost"
+                    className="w-full"
+                    onClick={handleDashboardClick}
+                  >
+                    Dashboard
                   </Button>
-                </Link>
+                  <Link href="/profile">
+                    <Button variant="ghost" className="w-full">
+                      <User className="h-4 w-4 mr-2" />
+                      Profile
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    className="w-full"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login">
+                    <Button variant="ghost" className="w-full">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Button
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white shadow-md"
+                    onClick={handleDashboardClick}
+                  >
+                    Go to dashboard
+                  </Button>
+                </>
               )}
-              <Button
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white shadow-md"
-                onClick={handleDashboardClick}
-              >
-                Go to dashboard
-              </Button>
             </div>
           </div>
         )}

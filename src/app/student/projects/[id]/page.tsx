@@ -4,6 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useProjectById } from "@/src/hooks/useProjects";
 import { useMyApplications } from "@/src/hooks/useApplications";
+import { useProjectMembers } from "@/src/hooks/useProjectMembers";
+import { useProjectTasks } from "@/src/hooks/useTasks";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
@@ -27,9 +29,34 @@ const StudentProjectDetail = () => {
 
   const { data: project, isLoading } = useProjectById(id || "");
   const { data: applications } = useMyApplications(user?.id || "");
+  const { data: projectMembers, error: membersError } = useProjectMembers(id || "");
+  const { data: tasks } = useProjectTasks(id || "");
   const [showApplicationModal, setShowApplicationModal] = useState(false);
 
   const application = applications?.find((app) => app.project_id === id);
+  
+  // Check if the current user is already a member of the project
+  // If the API returns 403, it means the user is not a member
+  // If it succeeds, check if user ID is in the members list
+  const isMember = projectMembers?.some(
+    (member) => member.student_id === user?.id
+  ) || false;
+
+  // Fallback: if user has tasks assigned, they should be able to see them
+  // This handles edge cases where membership check might fail but tasks exist
+  const hasAssignedTasks = tasks?.some((task) => {
+    let assignedTo: string | null = null;
+    if (typeof task.assigned_to === 'string') {
+      assignedTo = task.assigned_to;
+    } else if (task.assigned_to && typeof task.assigned_to === 'object') {
+      const assignedToObj = task.assigned_to as any;
+      assignedTo = assignedToObj._id?.toString() || assignedToObj.toString() || null;
+    }
+    return assignedTo === user?.id;
+  }) || false;
+
+  // Show tasks if user is a member OR has assigned tasks
+  const shouldShowTasks = isMember || hasAssignedTasks;
 
   const isAccepted = application?.status === "accepted";
   const isPending = application?.status === "pending";
@@ -115,8 +142,8 @@ const StudentProjectDetail = () => {
               </div>
             </Card>
 
-            {/* Tasks (only if accepted) */}
-            {isAccepted && (
+            {/* Tasks (if member or has assigned tasks) */}
+            {shouldShowTasks && (
               <Card className="p-6">
                 <StudentTaskList projectId={project.id} />
               </Card>
@@ -149,13 +176,22 @@ const StudentProjectDetail = () => {
 
             {/* Application Status / Action */}
             <Card className="p-6">
-              {!application && (
+              {!application && !isMember && (
                 <Button onClick={() => setShowApplicationModal(true)} className="w-full">
                   Apply to Project
                 </Button>
               )}
 
-              {isPending && (
+              {isMember && (
+                <div className="text-center">
+                  <Badge variant="default" className="mb-2">
+                    Project Member
+                  </Badge>
+                  <p className="text-sm text-muted-foreground">You are part of this project</p>
+                </div>
+              )}
+
+              {isPending && !isMember && (
                 <div className="text-center">
                   <Badge variant="secondary" className="mb-2">
                     Application Pending
@@ -166,7 +202,7 @@ const StudentProjectDetail = () => {
                 </div>
               )}
 
-              {isAccepted && (
+              {isAccepted && !isMember && (
                 <div className="text-center">
                   <Badge variant="default" className="mb-2">
                     Accepted
@@ -175,7 +211,7 @@ const StudentProjectDetail = () => {
                 </div>
               )}
 
-              {isRejected && (
+              {isRejected && !isMember && (
                 <div className="text-center">
                   <Badge variant="destructive" className="mb-2">
                     Application Rejected

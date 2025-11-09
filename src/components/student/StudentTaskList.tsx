@@ -2,6 +2,7 @@
 
 import { useProjectTasks, useUpdateTaskStatus } from "@/src/hooks/useTasks";
 import { useAuth } from "@/src/contexts/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/src/components/ui/card";
 import { Badge } from "@/src/components/ui/badge";
 import { Checkbox } from "@/src/components/ui/checkbox";
@@ -19,16 +20,48 @@ const StudentTaskList = ({ projectId }: StudentTaskListProps) => {
   const { user } = useAuth();
   const { data: tasks, isLoading } = useProjectTasks(projectId);
   const updateTask = useUpdateTaskStatus();
+  const queryClient = useQueryClient();
 
   // Filter tasks assigned to the current student
-  const studentTasks = tasks?.filter(
-    (task) => task.assigned_to === user?.id
-  ) || [];
+  const studentTasks = tasks?.filter((task) => {
+    // Handle both string and object formats for assigned_to
+    let assignedTo: string | null = null;
+    if (typeof task.assigned_to === 'string') {
+      assignedTo = task.assigned_to;
+    } else if (task.assigned_to && typeof task.assigned_to === 'object') {
+      const assignedToObj = task.assigned_to as any;
+      assignedTo = assignedToObj._id?.toString() || assignedToObj.toString() || null;
+    }
+    return assignedTo === user?.id;
+  }) || [];
 
   const handleToggleComplete = (taskId: string, currentStatus: TaskStatus) => {
     const newStatus: TaskStatus =
       currentStatus === "completed" ? "in_progress" : "completed";
-    updateTask.mutate({ taskId, data: { status: newStatus } });
+    
+    // Save previous tasks for rollback
+    const previousTasks = tasks;
+    
+    // Optimistic update: update the cache immediately
+    if (tasks) {
+      const updatedTasks = tasks.map((task) =>
+        task.id === taskId ? { ...task, status: newStatus } : task
+      );
+      queryClient.setQueryData(['project-tasks', projectId], updatedTasks);
+    }
+    
+    // Perform the actual mutation
+    updateTask.mutate(
+      { taskId, data: { status: newStatus } },
+      {
+        onError: () => {
+          // Rollback on error - restore original tasks
+          if (previousTasks) {
+            queryClient.setQueryData(['project-tasks', projectId], previousTasks);
+          }
+        },
+      }
+    );
   };
 
   if (isLoading) {
@@ -64,7 +97,7 @@ const StudentTaskList = ({ projectId }: StudentTaskListProps) => {
               <Checkbox
                 checked={task.status === "completed"}
                 onCheckedChange={() => handleToggleComplete(task.id, task.status)}
-                className="mt-1"
+                className="mt-1 cursor-pointer"
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
