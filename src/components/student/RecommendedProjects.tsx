@@ -19,7 +19,7 @@ const RecommendedProjects = ({ onApply }: RecommendedProjectsProps) => {
 
   // Calculate match percentages and get top 3 projects
   const topProjects = useMemo(() => {
-    if (!projects || !profile?.skills || projects.length === 0) {
+    if (!projects || !profile?.skills || profile.skills.length === 0 || projects.length === 0) {
       return [];
     }
 
@@ -29,15 +29,16 @@ const RecommendedProjects = ({ onApply }: RecommendedProjectsProps) => {
       matchPercentage: calculateSkillMatch(profile.skills || [], project.skills || []),
     }));
 
-    // Sort by match percentage (descending) and take top 3
-    const sorted = projectsWithMatch
-      .sort((a, b) => b.matchPercentage - a.matchPercentage)
-      .slice(0, 3);
+    // Sort by match percentage (descending)
+    const sorted = projectsWithMatch.sort(
+      (a, b) => b.matchPercentage - a.matchPercentage
+    );
 
-    // Only return projects if at least one has > 50% match
+    // Determine slice size based on presence of strong matches
     const hasGoodMatch = sorted.some((item) => item.matchPercentage > 50);
-    
-    return hasGoodMatch ? sorted.map((item) => item.project) : [];
+    const topSlice = hasGoodMatch ? sorted.slice(0, 3) : sorted.slice(0, 2);
+
+    return topSlice.map((item) => item.project);
   }, [projects, profile?.skills]);
 
   if (isLoading) {

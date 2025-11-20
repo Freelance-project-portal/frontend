@@ -5,7 +5,7 @@ import { Upload, File as FileIcon, X } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 
 interface FileUploadProps {
-  onFileSelect: (file: File) => void;
+  onFileSelect: (file: File | null) => void;
   accept?: string;
   maxSizeMB?: number;
   currentFile?: string;
@@ -63,6 +63,7 @@ const FileUpload = ({ onFileSelect, accept = ".pdf,.doc,.docx", maxSizeMB = 5, c
   const handleRemove = () => {
     setSelectedFile(null);
     setError("");
+    onFileSelect(null);
   };
 
   return (

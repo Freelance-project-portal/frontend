@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+
 import { useProjectById } from "@/src/hooks/useProjects";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
@@ -11,6 +14,8 @@ import { ArrowLeft, Clock, Calendar, Users, User, FileQuestion } from "lucide-re
 import ProjectStatusBadge from "@/src/components/shared/ProjectStatusBadge";
 import { LoadingSpinner } from "@/src/components/shared/LoadingState";
 import EmptyState from "@/src/components/shared/EmptyState";
+import { useAuth } from "@/src/contexts/AuthContext";
+import ApplicationModal from "@/src/components/student/ApplicationModal";
 
 const formatRelativeTime = (dateString: string): string => {
   const date = new Date(dateString);
@@ -26,8 +31,28 @@ const formatRelativeTime = (dateString: string): string => {
 
 const ProjectDetail = () => {
   const params = useParams();
+  const router = useRouter();
+  const { user } = useAuth();
   const projectId = params?.id as string;
   const { data: project, isLoading, error } = useProjectById(projectId);
+  const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
+
+  const handleApplyClick = () => {
+    if (!project) return;
+
+    if (!user) {
+      toast.info("Please sign in to apply for projects.");
+      router.push("/login");
+      return;
+    }
+
+    if (user.role !== "student") {
+      toast.error("Only students can apply to projects.");
+      return;
+    }
+
+    setIsApplicationModalOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -177,7 +202,7 @@ const ProjectDetail = () => {
                 
                 <Separator className="my-4" />
                 
-                <Button className="w-full" size="lg" variant="default">
+                <Button className="w-full" size="lg" variant="default" onClick={handleApplyClick}>
                   Apply for Project
                 </Button>
                 <Button className="w-full" variant="outline">
@@ -218,6 +243,14 @@ const ProjectDetail = () => {
           </div>
         </div>
       </div>
+      {project && (
+        <ApplicationModal
+          open={isApplicationModalOpen}
+          onOpenChange={setIsApplicationModalOpen}
+          projectId={project.id}
+          projectTitle={project.title}
+        />
+      )}
     </div>
   );
 };

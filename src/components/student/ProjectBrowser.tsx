@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import { useRecentProjects } from "@/src/hooks/useProjects";
 import { useMyApplications } from "@/src/hooks/useApplications";
@@ -17,12 +19,28 @@ import { FolderOpen } from "lucide-react";
 import ApplicationModal from "./ApplicationModal";
 
 const ProjectBrowser = () => {
+  const router = useRouter();
   const { user } = useAuth();
   const { data: projects, isLoading } = useRecentProjects();
   const { data: applications } = useMyApplications(user?.id || "");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState<{ id: string; title: string } | null>(null);
+
+  const handleApplyClick = (projectId: string, projectTitle: string) => {
+    if (!user) {
+      toast.info("Please sign in to apply for projects.");
+      router.push("/login");
+      return;
+    }
+
+    if (user.role !== "student") {
+      toast.error("Only students can apply to projects.");
+      return;
+    }
+
+    setSelectedProject({ id: projectId, title: projectTitle });
+  };
 
   const getApplicationStatus = (projectId: string) => {
     const application = applications?.find((app) => app.project_id === projectId);
@@ -57,7 +75,7 @@ const ProjectBrowser = () => {
               key={project.id}
               project={project}
               appliedStatus={getApplicationStatus(project.id)}
-              onApply={() => setSelectedProject({ id: project.id, title: project.title ?? "Project" })}
+              onApply={() => handleApplyClick(project.id, project.title ?? "Project")}
             />
           ))}
         </div>

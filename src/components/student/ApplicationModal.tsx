@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { toast } from "sonner";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/src/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
@@ -12,6 +14,8 @@ import { Button } from "@/src/components/ui/button";
 
 import FileUpload from "@/src/components/shared/FileUpload";
 import { useSubmitApplication } from "@/src/hooks/useApplications";
+import { useAuth } from "@/src/contexts/AuthContext";
+import { uploadResume } from "@/src/services/uploads";
 
 const applicationSchema = z.object({
   cover_letter: z.string().min(50, "Cover letter must be at least 50 characters"),
@@ -29,7 +33,10 @@ interface ApplicationModalProps {
 
 const ApplicationModal = ({ open, onOpenChange, projectId, projectTitle }: ApplicationModalProps) => {
   const submitApplication = useSubmitApplication();
+  const { user } = useAuth();
+  const router = useRouter();
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [isUploadingResume, setIsUploadingResume] = useState(false);
 
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
@@ -40,10 +47,29 @@ const ApplicationModal = ({ open, onOpenChange, projectId, projectTitle }: Appli
   });
 
   const onSubmit = async (data: ApplicationFormData) => {
+    if (!user) {
+      toast.info("Please sign in to apply for projects.");
+      router.push("/login");
+      return;
+    }
+
+    if (user.role !== "student") {
+      toast.error("Only students can apply to projects.");
+      return;
+    }
+
     let resumeUrl = "";
     if (resumeFile) {
-      // Placeholder: implement upload later
-      resumeUrl = "uploaded-resume-url";
+      try {
+        setIsUploadingResume(true);
+        const uploaded = await uploadResume(resumeFile);
+        resumeUrl = uploaded.url;
+      } catch (error: any) {
+        toast.error(error.message || "Failed to upload resume");
+        return;
+      } finally {
+        setIsUploadingResume(false);
+      }
     }
 
     await submitApplication.mutateAsync({
@@ -94,8 +120,12 @@ const ApplicationModal = ({ open, onOpenChange, projectId, projectTitle }: Appli
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={submitApplication.isPending}>
-                {submitApplication.isPending ? "Submitting..." : "Submit Application"}
+              <Button type="submit" disabled={submitApplication.isPending || isUploadingResume}>
+                {submitApplication.isPending
+                  ? "Submitting..."
+                  : isUploadingResume
+                  ? "Uploading Resume..."
+                  : "Submit Application"}
               </Button>
             </div>
           </form>
